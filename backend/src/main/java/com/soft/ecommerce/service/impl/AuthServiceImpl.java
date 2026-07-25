@@ -13,10 +13,13 @@ import com.soft.ecommerce.repository.UserRepository;
 import com.soft.ecommerce.security.jwt.JwtUtils;
 import com.soft.ecommerce.security.request.LoginRequest;
 import com.soft.ecommerce.security.request.SignUpRequest;
+import com.soft.ecommerce.security.request.UpdateEmailRequest;
+import com.soft.ecommerce.security.request.UpdatePasswordRequest;
 import com.soft.ecommerce.security.response.MessageResponse;
 import com.soft.ecommerce.security.response.UserInfoResponse;
 import com.soft.ecommerce.security.services.UserDetailsImpl;
 import com.soft.ecommerce.service.api.AuthService;
+import com.soft.ecommerce.utils.AuthUtil;
 import com.soft.ecommerce.utils.RefactorMethods;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -44,15 +47,17 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final ModelMapper modelMapper;
+    private final AuthUtil authUtil;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, RoleRepository roleRepository,
-                           PasswordEncoder encoder, ModelMapper modelMapper) {
+                           PasswordEncoder encoder, ModelMapper modelMapper, AuthUtil authUtil) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
         this.modelMapper = modelMapper;
+        this.authUtil = authUtil;
     }
 
     @Override
@@ -166,5 +171,59 @@ public class AuthServiceImpl implements AuthService {
         return RefactorMethods.getPageResponse(usersPage,
                                           user -> modelMapper.map(user,UserDTO.class),
                                   "NO SELLERS FOUNDED");
+    }
+
+    @Override
+    public UserInfoResponse updatePassword(UpdatePasswordRequest request) {
+        User user = authUtil.loggedInUser();
+
+        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new APIException("Current password is incorrect");
+        }
+
+        if (encoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new APIException("New password must be different from the current one");
+        }
+
+        user.setPassword(encoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return buildUserInfoResponse(user);
+    }
+
+    @Override
+    public UserInfoResponse updateEmail(UpdateEmailRequest request) {
+        User user = authUtil.loggedInUser();
+
+        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new APIException("Current password is incorrect");
+        }
+
+        if (userRepository.existsByEmail(request.getNewEmail())) {
+            throw new APIException("Email " + request.getNewEmail() + " is already in use");
+        }
+
+        if (request.getNewEmail().equalsIgnoreCase(user.getEmail())) {
+            throw new APIException("New email must be different from the current one");
+        }
+
+        user.setEmail(request.getNewEmail());
+        userRepository.save(user);
+
+        return buildUserInfoResponse(user);
+    }
+
+    private UserInfoResponse buildUserInfoResponse(User user) {
+        List<String> roles = user.getRoles()
+                                 .stream()
+                                 .map(role -> role.getName().name())
+                                 .toList();
+
+        return UserInfoResponse.builder()
+                               .id(user.getId())
+                               .username(user.getUsername())
+                               .email(user.getEmail())
+                               .roles(roles)
+                               .build();
     }
 }

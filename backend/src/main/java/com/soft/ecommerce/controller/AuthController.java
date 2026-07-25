@@ -6,6 +6,8 @@ import com.soft.ecommerce.payload.PageResponse;
 import com.soft.ecommerce.payload.UserDTO;
 import com.soft.ecommerce.security.request.LoginRequest;
 import com.soft.ecommerce.security.request.SignUpRequest;
+import com.soft.ecommerce.security.request.UpdateEmailRequest;
+import com.soft.ecommerce.security.request.UpdatePasswordRequest;
 import com.soft.ecommerce.security.response.MessageResponse;
 import com.soft.ecommerce.security.response.UserInfoResponse;
 import com.soft.ecommerce.service.api.AuthService;
@@ -73,6 +75,20 @@ public class AuthController {
 
         PageResponse<UserDTO> userResponse = authService.getAllSellers(pageNumber);
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<UserInfoResponse> updatePassword(@Valid @RequestBody UpdatePasswordRequest request) {
+
+        UserInfoResponse response = authService.updatePassword(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping("/email")
+    public ResponseEntity<UserInfoResponse> updateEmail(@Valid @RequestBody UpdateEmailRequest request) {
+
+        UserInfoResponse response = authService.updateEmail(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 

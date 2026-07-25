@@ -5,6 +5,8 @@ import com.soft.ecommerce.payload.PageResponse;
 import com.soft.ecommerce.payload.UserDTO;
 import com.soft.ecommerce.security.request.LoginRequest;
 import com.soft.ecommerce.security.request.SignUpRequest;
+import com.soft.ecommerce.security.request.UpdateEmailRequest;
+import com.soft.ecommerce.security.request.UpdatePasswordRequest;
 import com.soft.ecommerce.security.response.MessageResponse;
 import com.soft.ecommerce.security.response.UserInfoResponse;
 import org.springframework.http.ResponseCookie;
@@ -17,4 +19,6 @@ public interface AuthService {
     ResponseEntity<MessageResponse> register(SignUpRequest signUpRequest);
     UserInfoResponse getCurrentUserDetails(Authentication authentication);
     PageResponse<UserDTO> getAllSellers(Integer pageNumber);
+    UserInfoResponse updatePassword(UpdatePasswordRequest request);
+    UserInfoResponse updateEmail(UpdateEmailRequest request);
 }
