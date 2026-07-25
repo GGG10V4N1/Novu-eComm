@@ -34,6 +34,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o")
     Double getTotalRevenue();
 
+    @Query("""
+            SELECT COUNT(DISTINCT o)
+            FROM Order o
+            JOIN o.orderItems oi
+            JOIN oi.product p
+            WHERE p.user.id = :sellerId
+            """)
+    long countDistinctBySellerId(@Param("sellerId") Long sellerId);
+
+    @Query("""
+            SELECT COALESCE(SUM(oi.price * oi.quantity * (1 - COALESCE(oi.discount, 0) / 100.0)), 0)
+            FROM OrderItem oi
+            JOIN oi.product p
+            WHERE p.user.id = :sellerId
+            """)
+    Double getTotalRevenueBySellerId(@Param("sellerId") Long sellerId);
+
     Page<Order> findByEmail(String email, Pageable pageable);
 
     Optional<Order> findByIdAndEmail(Long orderId, String email);

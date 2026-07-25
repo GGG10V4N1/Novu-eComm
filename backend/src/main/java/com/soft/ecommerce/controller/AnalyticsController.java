@@ -24,4 +24,11 @@ public class AnalyticsController {
         AnalyticsResponse response = analyticsService.getAnalyticsData();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/seller/app/analytics")
+    public ResponseEntity<AnalyticsResponse> getSellerAnalytics() {
+
+        AnalyticsResponse response = analyticsService.getSellerAnalyticsData();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -127,12 +128,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public PageResponse<OrderDTO> findAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Pageable pageDetails = RefactorMethods.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         User seller = authUtil.loggedInUser();
         Page<Order> orderPage = orderRepository.findAllBySellerId(seller.getId(), pageDetails);
-        return RefactorMethods.getPageResponse(orderPage, order -> modelMapper.map(order, OrderDTO.class),
+        return RefactorMethods.getPageResponse(orderPage, order -> mapOrderForSeller(order, seller),
                                   "NO ORDERS HAVE BEEN PLACED YET");
+    }
+
+    private OrderDTO mapOrderForSeller(Order order, User seller) {
+        OrderDTO dto = modelMapper.map(order, OrderDTO.class);
+
+        List<OrderItemDTO> sellerItems = (order.getOrderItems() == null ? List.of() : order.getOrderItems().stream()
+                .filter(Objects::nonNull)
+                .filter(item -> item.getProduct() != null
+                        && item.getProduct().getUser() != null
+                        && Objects.equals(item.getProduct().getUser().getId(), seller.getId()))
+                .map(item -> modelMapper.map(item, OrderItemDTO.class))
+                .toList());
+
+        dto.setOrderItems(sellerItems);
+
+        double sellerTotal = 0.0;
+        for (OrderItemDTO item : sellerItems) {
+            double price = item.getPrice() == null ? 0.0 : item.getPrice();
+            int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
+            double discount = item.getDiscount() == null ? 0.0 : item.getDiscount();
+            sellerTotal += price * quantity * (1.0 - discount / 100.0);
+        }
+        dto.setTotalAmount(sellerTotal);
+
+        return dto;
     }
 
     @Override

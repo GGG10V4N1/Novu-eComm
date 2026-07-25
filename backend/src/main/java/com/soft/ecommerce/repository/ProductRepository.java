@@ -16,4 +16,6 @@ public interface ProductRepository extends JpaRepository<Product,Long>, JpaSpeci
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageDetails);
 
     Page<Product> findByUser(User user, Pageable pageDetails);
+
+    long countByUser(User user);
 }
