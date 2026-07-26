@@ -344,28 +344,6 @@ STRIPE_SECRET_KEY=...
 
 ---
 
-## Cambios Recientes (Backend)
-
-Resumen de las últimas modificaciones al backend:
-
-### Panel de Usuario (`/order/users`, `/auth/password`, `/auth/email`)
-- **`GET /order/users`**: listado paginado de los pedidos del usuario autenticado (`OrderRepository.findByEmail`).
-- **`GET /order/users/{orderId}`**: detalle de un pedido propio, validando propiedad por email (`OrderRepository.findByIdAndEmail`). Lanza `ResourceNotFoundException` si el pedido no pertenece al usuario.
-- **`PUT /auth/password`**: cambio de contraseña del usuario autenticado. Requiere `currentPassword` y `newPassword` (validada con `@Size(min=6, max=100)`). Verifica que la contraseña actual sea correcta y que la nueva sea distinta (`UpdatePasswordRequest`).
-- **`PUT /auth/email`**: cambio de email del usuario autenticado. Requiere `currentPassword` y `newEmail` (validado con `@Email`). Verifica contraseña, unicidad del email (`userRepository.existsByEmail`) y que sea distinto al actual (`UpdateEmailRequest`).
-
-### Analytics por Seller (`/seller/app/analytics`)
-- **`GET /seller/app/analytics`**: nuevo endpoint que retorna métricas del seller autenticado: cantidad de productos, total de pedidos asociados y revenue.
-- `AnalyticsServiceImpl.getSellerAnalyticsData()`: usa `authUtil.loggedInUser()` con nuevas queries en `OrderRepository` (`countDistinctBySellerId`, `getTotalRevenueBySellerId`) y `ProductRepository.countByUser`.
-
-### Órdenes de Seller (mejoras)
-- `findAllSellerOrders` ahora es `@Transactional` y filtra los `OrderItem` devueltos para mostrar solo los productos del seller, recalculando `totalAmount` como suma de los items propios (precio × cantidad × (1 - descuento/100)).
-
-### Bugfix de SignUp
-- Se eliminó la restricción `@NotNull` del campo `roles` en `SignUpRequest` (campo ahora opcional para el registro).
-
----
-
 ## Autor
 
 **Giovani Saavedra**  
