@@ -340,7 +340,6 @@ STRIPE_SECRET_KEY=...
 - Validación Bean Validation en DTOs
 - Manejo global de excepciones (`GlobalExceptionHandler`)
 - CORS configurado
-- **Path de cookie JWT corregido**: se ajustó el `path` de la cookie JWT de `/ecommApi` a `/ecomApi` en `JwtUtils` para coincidir con el base path real de la API.
 
 ---
 
