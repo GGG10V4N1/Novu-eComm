@@ -1,4 +1,4 @@
-# Soft-eComm
+# Novu-eComm
 
 Plataforma de e-commerce full-stack compuesta por un **backend** en Spring Boot (Java 21) y un **frontend** SPA.
 
@@ -6,7 +6,7 @@ Plataforma de e-commerce full-stack compuesta por un **backend** en Spring Boot 
 
 ---
 
-## Soft-eComm Backend
+## Novu-eComm Backend
 
 Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5.x** y **Java 21**.
 
