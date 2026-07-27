@@ -1,11 +1,3 @@
-# Novu-eComm
-
-Plataforma de e-commerce full-stack compuesta por un **backend** en Spring Boot (Java 21) y un **frontend** SPA.
-
-> **Nota sobre el Frontend**: El frontend de este proyecto fue completamente *vibecodeado* y desarrollado haciendo uso de herramientas de Inteligencia Artificial (IA) asistida. La lógica, los componentes y la integración con el backend se generaron y refinaron mediante prompts y asistencia de IA, sin código escrito manualmente desde cero.
-
----
-
 ## Novu-eComm Backend
 
 Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5.x** y **Java 21**.
