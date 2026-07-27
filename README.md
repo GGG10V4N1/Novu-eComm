@@ -56,6 +56,11 @@ Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5
 | **ModelMapper** | 3.2.4 | Mapeo Entity ↔ DTO |
 | **Stripe Java** | 29.3.0 | Integración de pagos |
 
+### Almacenamiento de Imágenes
+| Servicio | Propósito |
+|----------|-----------|
+| **Cloudinary** (cloudinary-http44) | Almacenamiento y CDN de imágenes de productos mediante upload directo desde el backend |
+
 ### Documentación API
 | Herramienta | Versión | Descripción |
 |-------------|---------|-------------|
@@ -270,9 +275,10 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 # JPA/Hibernate
 spring.jpa.hibernate.ddl-auto=validate
 
-# Imágenes
-image.base.url=http://localhost:8080/images
-project.image=images/
+# Cloudinary (imágenes de productos)
+cloudinary.cloud-name=${CLOUDINARY_CLOUD_NAME}
+cloudinary.api-key=${CLOUDINARY_API_KEY}
+cloudinary.api-secret=${CLOUDINARY_API_SECRET}
 
 # Frontend (para CORS en WebMvcConfig)
 frontend.url=${FRONTEND_URL}
@@ -292,8 +298,12 @@ SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/ecomm?createDatabaseIfNotExist
 SPRING_DATASOURCE_USERNAME=...
 SPRING_DATASOURCE_PASSWORD=...
 FRONTEND_URL=http://localhost:5173/
-IMAGE_BASE_URL=http://localhost:8080/images
-PROJECT_IMAGE=images/
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
 STRIPE_SECRET_KEY=...
 ```
 ## Principales Funcionalidades
@@ -302,7 +312,7 @@ STRIPE_SECRET_KEY=...
 - CRUD completo de productos (Seller/Admin)
 - Búsqueda con filtros: categoría, precio, nombre, paginación
 - Gestión de categorías (Admin)
-- Imágenes de productos (servidas estáticamente)
+- Imágenes de productos (almacenadas en Cloudinary y servidas vía su CDN)
 
 ###  Carrito de Compras
 - Un carrito por usuario (1:1)

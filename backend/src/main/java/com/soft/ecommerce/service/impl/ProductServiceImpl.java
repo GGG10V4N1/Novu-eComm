@@ -39,12 +39,6 @@ public class ProductServiceImpl implements ProductService {
     private final FileService fileService;
     private final AuthUtil authUtil;
 
-    @Value("${image.base.url}")
-    private String imageBaseUrl;
-
-    @Value("${project.image}")
-    private String path;
-
     public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository,
                               ModelMapper modelMapper, CartServiceImpl cartServiceImpl, CartRepository cartRepository, FileService fileService, AuthUtil authUtil) {
         this.productRepository = productRepository;
@@ -56,13 +50,8 @@ public class ProductServiceImpl implements ProductService {
         this.authUtil = authUtil;
     }
 
-    private String buildImageUrl(String imageName) {
-        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
-    }
-
     private ProductDTO mapToDtoWithImage(Product product) {
         ProductDTO dto = modelMapper.map(product, ProductDTO.class);
-        dto.setImage(buildImageUrl(product.getImage()));
         return dto;
     }
 
@@ -83,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = modelMapper.map(productDTO, Product.class);
         product.setUser(authUtil.loggedInUser());
-        product.setImage("default.png");
+        product.setImage("");
         product.setCategory(category);
         if(product.getDiscount() == null) product.setDiscount(0.0);
         if(product.getSpecialPrice() == null){ //auto specialPrice
@@ -189,8 +178,8 @@ public class ProductServiceImpl implements ProductService {
         Product foundedProduct = productRepository
                                  .findById(productId)
                                  .orElseThrow( () -> new ResourceNotFoundException("Product", "id", productId) );
-        String fileName = fileService.uploadImage(path, image);
-        foundedProduct.setImage(fileName);
+        String imageUrl = fileService.uploadImage(image);
+        foundedProduct.setImage(imageUrl);
         Product updatedProduct = productRepository.save(foundedProduct);
         return mapToDto(updatedProduct);
     }

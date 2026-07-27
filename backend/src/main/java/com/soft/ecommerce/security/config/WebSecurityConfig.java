@@ -79,7 +79,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/ecomApi/public/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/ecomApi/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .anyRequest().authenticated()
                 );
