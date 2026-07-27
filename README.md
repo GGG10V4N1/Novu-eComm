@@ -2,6 +2,8 @@
 
 Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5.x** y **Java 21**.
 
+> **Aplicación desplegada**: https://flat-waterfall-9704.a20226584.workers.dev/
+
 ---
 
 ## Tabla de Contenidos
@@ -130,16 +132,26 @@ Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5
 ## Seguridad y Autenticación
 
 ### JWT (JSON Web Tokens)
-- **Algoritmo**: HS256 (firma simétrica)
-- **Expiración**: 300,000,000 ms (~3.5 días)
-- **Transporte**: HttpOnly Cookie (`ecomm-cookie`) + Header Authorization Bearer
+- **Algoritmo**: HS256
+- **Expiración**: 300,000,000 ms
+- **Transporte principal**: Header `Authorization: Bearer <token>`
+- **Transporte legacy**: Cookie `ecomm-cookie`
 - **Secret**: Configurable via `spring.app.jwtSecret`
 
 ### Flujo de Autenticación
-1. **Login** (`POST /ecomApi/auth/signin`) → Devuelve JWT en cookie HttpOnly
-2. **Requests posteriores** → Cookie enviada automáticamente + Header `Authorization: Bearer <token>`
-3. **Filtro JWT** (`AuthTokenFilter`) → Valida token, carga `UserDetails` en `SecurityContext`
-4. **Logout** (`POST /ecomApi/auth/signout`) → Invalida cookie
+1. **Login** (`POST /ecomApi/auth/signin`) → Devuelve `UserInfoResponse` con `jwtToken` en el body. El frontend lo persiste en `localStorage`.
+2. **Requests posteriores** → El interceptor de axios lee el token de `localStorage` y lo inyecta en el header `Authorization: Bearer <token>`.
+3. **Filtro JWT** (`AuthTokenFilter`) → Lee el token primero de la cookie y luego del header `Authorization`. Valida el token, carga `UserDetails` en `SecurityContext`.
+4. **Logout** (`POST /ecomApi/auth/signout`) → El frontend elimina el token de `localStorage` y limpia la cookie residual.
+
+### Nota sobre cookies cross-origin
+El backend sigue seteando la cookie `ecomm-cookie` con atributos configurables, pero el flujo principal de autenticación en producción cloud usa el header `Authorization` porque los navegadores modernos bloquean cookies third-party entre dominios distintos. Los atributos de la cookie quedan configurables vía:
+
+| Propiedad | Variable de entorno | Local | Cloud |
+|-----------|---------------------|-------|-------|
+| `app.cookie.secure` | `APP_COOKIE_SECURE` | `false` | `true` |
+| `app.cookie.same-site` | `APP_COOKIE_SAME_SITE` | `lax` | `none` |
+| `app.cookie.domain` | `APP_COOKIE_DOMAIN` | (vacío) | (vacío) |
 
 ### Roles y Autorización (RBAC)
 | Rol | Permisos |
@@ -243,14 +255,14 @@ Backend API para una plataforma de e-commerce desarrollada con **Spring Boot 3.5
 ### Características
 - Documentación automática de todos los endpoints
 - Esquemas de request/response generados desde DTOs
-- Autorización JWT integrada en UI (botón "Authorize")
-- Agrupación por tags (Auth, Products, Categories, Cart, Orders, etc.)
+- Autorización JWT integrada en UI con botón "Authorize"
+- Agrupación por tags: Auth, Products, Categories, Cart, Orders, etc.
 
 ---
 
 ## Configuración
 
-### Variables Principales (`application.properties` → `${...}` resueltas desde `.env`)
+### Variables Principales (`application.properties`)
 
 ```properties
 # Aplicación
@@ -262,7 +274,12 @@ spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
 spring.app.jwtExpirationMs=${SPRING_APP_JWT_EXPIRATION_MS}
 spring.ecom.app.jwtCookieName=${SPRING_ECOM_APP_JWT_COOKIE_NAME}
 
-# Seguridad Spring (basic auth)
+# Cookie JWT
+app.cookie.secure=${APP_COOKIE_SECURE:false}
+app.cookie.same-site=${APP_COOKIE_SAME_SITE:lax}
+app.cookie.domain=${APP_COOKIE_DOMAIN:}
+
+# Seguridad Spring
 spring.security.user.name=${SPRING_SECURITY_USER_NAME}
 spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD}
 
@@ -275,37 +292,18 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 # JPA/Hibernate
 spring.jpa.hibernate.ddl-auto=validate
 
-# Cloudinary (imágenes de productos)
+# Cloudinary
 cloudinary.cloud-name=${CLOUDINARY_CLOUD_NAME}
 cloudinary.api-key=${CLOUDINARY_API_KEY}
 cloudinary.api-secret=${CLOUDINARY_API_SECRET}
 
-# Frontend (para CORS en WebMvcConfig)
+# Frontend
 frontend.url=${FRONTEND_URL}
 
 # Stripe
 stripe.secret.key=${STRIPE_SECRET_KEY}
 ```
 
-### `.env` (no versionado)
-```properties
-SPRING_SECURITY_USER_NAME=...
-SPRING_SECURITY_USER_PASSWORD=...
-SPRING_APP_JWT_SECRET=...
-SPRING_APP_JWT_EXPIRATION_MS=300000000
-SPRING_ECOM_APP_JWT_COOKIE_NAME=ecomm-cookie
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/ecomm?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
-SPRING_DATASOURCE_USERNAME=...
-SPRING_DATASOURCE_PASSWORD=...
-FRONTEND_URL=http://localhost:5173/
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-
-STRIPE_SECRET_KEY=...
-```
 ## Principales Funcionalidades
 
 ###  Catálogo y Productos
@@ -332,7 +330,7 @@ STRIPE_SECRET_KEY=...
 
 ### Gestión de Usuarios y Roles
 - Registro con validación (email único, username único)
-- Login con JWT en cookie HttpOnly
+- Login con JWT (Bearer token en header `Authorization`, persistido en `localStorage` por el frontend)
 - Roles: USER, SELLER, ADMIN (inicializados en arranque)
 - Perfil de usuario y direcciones múltiples
 
