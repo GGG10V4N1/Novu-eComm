@@ -10,14 +10,10 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Directorio para imagenes subidas por usuarios (persistente en Render via Disk)
-RUN mkdir -p /app/images
-VOLUME ["/app/images"]
-
 # Copiar el JAR construido en el stage de build
 COPY --from=build /app/target/eComm-0.0.1-SNAPSHOT.jar app.jar
 
-# Variables de entorno por defecto (Render las sobreescribe con Env Vars)
+# Variables de entorno por defecto (Koyeb las sobreescribe con Env Vars)
 # Heap modesto pero suficiente para Spring Boot con 512MB total de RAM
 ENV SERVER_PORT=8080 \
     JAVA_OPTS="-Xmx256m -Xms128m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC"
