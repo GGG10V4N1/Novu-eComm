@@ -76,12 +76,12 @@ public class AuthServiceImpl implements AuthService {
                                         .toList();
 
         UserInfoResponse userInfoResponse = UserInfoResponse.builder()
-                                                            .id(userDetails.getId())
-                                                            .jwtToken(jwtCookie.toString())
-                                                            .username(userDetails.getUsername())
-                                                            .email(userDetails.getEmail())
-                                                            .roles(roles)
-                                                            .build();
+                                                             .id(userDetails.getId())
+                                                             .jwtToken(jwtUtils.generateTokenFromUsername(userDetails.getUsername()))
+                                                             .username(userDetails.getUsername())
+                                                             .email(userDetails.getEmail())
+                                                             .roles(roles)
+                                                             .build();
 
         return new AuthenticationResult(userInfoResponse,jwtCookie);
     }
