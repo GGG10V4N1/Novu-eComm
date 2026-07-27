@@ -6,5 +6,5 @@ target/
 .env
 *.iml
 HELP.md
-mtnw
-mtnw.cmd
+mvnw
+mvnw.cmd
