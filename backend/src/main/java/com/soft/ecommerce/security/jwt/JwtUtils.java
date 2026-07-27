@@ -30,6 +30,12 @@ public class JwtUtils {
     private Integer jwtExpirationMs;
     @Value("${spring.ecom.app.jwtCookieName}")
     private String jwtCookie;
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
+    @Value("${app.cookie.same-site:lax}")
+    private String cookieSameSite;
+    @Value("${app.cookie.domain:}")
+    private String cookieDomain;
 
     public String getJwtFromCookies(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
@@ -47,18 +53,28 @@ public class JwtUtils {
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl mainUser) {
         String jwt = generateTokenFromUsername(mainUser.getUsername());
-        return ResponseCookie.from(jwtCookie, jwt)
-                             .path("/ecomApi")
-                             .maxAge(24 * 60 * 60)
-                             .httpOnly(false)
-                             .secure(false)
-                             .build();
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(jwtCookie, jwt)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .httpOnly(false)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite);
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            builder.domain(cookieDomain);
+        }
+        return builder.build();
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        return ResponseCookie.from(jwtCookie, null)
-                             .path("/ecomApi")
-                             .build();
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(jwtCookie, null)
+                .path("/")
+                .maxAge(0)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite);
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            builder.domain(cookieDomain);
+        }
+        return builder.build();
     }
 
     public String generateTokenFromUsername(String username) {
